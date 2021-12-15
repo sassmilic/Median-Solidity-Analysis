@@ -1,11 +1,11 @@
 import json
 
 from solc import compile_standard
-from eth_tester import PyEVMBackend, EthereumTester
+from web3 import Web3, EthereumTesterProvider
 import web3
 web3.eth.handleRevert = True
 
-w3 = web3.Web3(web3.Web3.EthereumTesterProvider(EthereumTester(PyEVMBackend())))
+w3 = Web3(EthereumTesterProvider())
 w3.eth.default_account = w3.eth.accounts[0]
 
 def get_contract(filename, contract_name):

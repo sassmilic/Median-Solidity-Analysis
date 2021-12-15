@@ -58,61 +58,9 @@ contract SelectK {
     if (arr.length % 2 == 1) {
     
       return computeInPlace(arr, arr.length / 2);
-      
-    } else {
-    
-      (int x1, int x2) = compute2InPlace(arr, arr.length / 2 - 1);
-      return (x1 + x2) / 2; 
     }
+
   }
-  
-function medianWithPivot
-    (
-        int256[] memory arr
-    )
-        external
-        pure
-        returns (int256)
-    {
-        if (arr.length <= 5) {
-            selectKsmallArray(arr, 0);
-            uint m = arr.length / 2;
-        
-            if (arr.length % 2 == 1) {
-              return arr[m];
-          } else {
-              return (arr[m - 1] + arr[m]) / 2; 
-          }
-        }
-        
-        if (arr.length > 5) {
-          
-          int pivot = medianOfMedians(arr);
-          uint i; uint j;
-
-          if (arr.length % 2 == 1) {
-              (i,) = quickSelectwithPivot(
-                arr, 0, arr.length - 1, arr.length / 2, false, pivot
-              );
-              return arr[i];
-          } else {
-              (i, j) = quickSelectwithPivot(
-                arr, 0, arr.length - 1, arr.length / 2 - 1, true, pivot
-              );
-              return (arr[i] + arr[j]) / 2; 
-          }
-
-        if (arr.length % 2 == 1) {
-
-          return computeInPlace(arr, arr.length / 2);
-
-        } else {
-
-          (int x1, int x2) = compute2InPlace(arr, arr.length / 2 - 1);
-          return (x1 + x2) / 2; 
-        }
-    }
-}
 
 /// Returns the kth smallest element in an array of signed ints without
   /// modifying the input array. 
@@ -146,53 +94,6 @@ function medianWithPivot
   {
     require(k <= arr.length - 1 && arr.length <= SMALL_ARRAY_MAX_LENGTH, "k must be a valid index in arr");
     return selectKsmallArray(arr, k);
-  }
-
-///
-  ///
-  ///
-  function quickSelect_
-  (
-    int256[] memory arr,
-    uint256 lo,
-    uint256 hi,
-    uint256 k,
-    int256 pivot,
-    bool selectKplusOne
-  )
-    private
-    pure
-    returns (uint256, uint256)
-  {
-    assert(lo <= k && k <= hi);
-    
-    if (lo == hi) {return (k, 0);}
-   
-    uint256 pivotIdx = partition(arr, lo, hi);
-
-    uint256 idx1;
-    uint256 idx2;
-
-    if (k == pivotIdx) {
-      idx1 = pivotIdx;
-    } else if (k < pivotIdx){
-      (idx1, idx2) = quickSelect(arr, lo, pivotIdx - 1, k, false);
-    } else {
-      (idx1, idx2) = quickSelect(arr, pivotIdx + 1, hi, k, false);
-    }
-    if (!selectKplusOne) {
-      return (idx1, 0);
-    }
-    assert(idx1 != arr.length - 1);
-    // In order to find (k+1)th element,
-    // find minimum in right partition of array
-    idx2 = idx1 + 1;
-    for (uint i=idx1+2; i<arr.length; i++) {
-      if (arr[i] < arr[idx2]) {
-        idx2 = i;
-      }
-    }
-    return (idx1, idx2);
   }
 
   ///
@@ -230,28 +131,6 @@ function medianWithPivot
     
     return computeInPlace_(medians, noMedians / 2); 
   }
-  
-
-  /// Returns the kth and (k+1)st smallest elements in an array of signed ints without
-  /// modifying the input array.
-  /// @dev This is for when one wants to compute the exact median of an
-  ///      even-length array. It's more gas efficient than calling `compute` twice. 
-  /// @param arr An array of signed integers.
-  /// @param k the rank of the element
-  /// @return a tuple containing the kth and (k+1)st smallest elements in `arr`,
-  ///         respectively 
-  function compute2
-  (
-    int256[] memory arr,
-    uint256 k
-  )
-    external
-    pure
-    returns (int256, int256)
-  {
-    require(k <= arr.length - 2, "k must be a valid index in arr");
-    return compute2InPlace(copy(arr), k);
-  }
 
   /// Returns the kth smallest element in an array of signed ints.
   /// @dev The input array `arr` may be modified during the computation.
@@ -271,36 +150,8 @@ function medianWithPivot
     if (arr.length <= SMALL_ARRAY_MAX_LENGTH) {
       return selectKsmallArray(arr, k);
     }
-    (uint256 idx1,) = quickSelect(arr, 0, arr.length - 1, k, false);
-    return arr[idx1];
-  }
-
-  /// Returns the kth and (k+1)st smallest elements in an array of signed ints without
-  /// modifying the input array.
-  /// @dev This is for when one wants to compute the exact median of an
-  ///      even-length array. It's more gas efficient than calling `compute` twice.
-  ///      Note that array `arr` may be modified during the computation. 
-  /// @param arr An array of signed integers.
-  /// @param k the rank of the element
-  /// @return a tuple containing the kth and (k+1)st smallest elements in `arr`,
-  ///         respectively 
-  function compute2InPlace
-  (
-    int256[] memory arr,
-    uint256 k
-  )
-    public
-    pure
-    returns (int256, int256)
-  {
-    require(k <= arr.length - 2, "k must be a valid index in arr");
-    if (arr.length <= SMALL_ARRAY_MAX_LENGTH) {
-      int256 x1 = selectKsmallArray(arr, k);
-      int256 x2 = arr[k + 1];
-      return (x1, x2);
-    }
-    (uint256 idx1, uint256 idx2) = quickSelect(arr, 0, arr.length - 1, k, true);
-    return (arr[idx1], arr[idx2]);
+    (int256 x1,) = quickSelect(arr, 0, arr.length - 1, k, false);
+    return x1;
   }
 
   // PRIVATE FUNCTIONS
@@ -326,84 +177,47 @@ function medianWithPivot
   )
     private
     pure
-    returns (uint256, uint256)
+    returns (int256, int256)
   {
-    assert(lo <= k && k <= hi);
-    
-    if (lo == hi) {return (k, 0);}
-   
-    uint256 pivotIdx = partition(arr, lo, hi);
+      if (lo == hi) {return (arr[k], 0);}
 
-    uint256 idx1;
-    uint256 idx2;
+        uint i; uint j; uint idx; int pivot;
 
-    if (k == pivotIdx) {
-      idx1 = pivotIdx;
-    } else if (k < pivotIdx){
-      (idx1, idx2) = quickSelect(arr, lo, pivotIdx - 1, k, false);
-    } else {
-      (idx1, idx2) = quickSelect(arr, pivotIdx + 1, hi, k, false);
-    }
-    if (!selectKplusOne) {
-      return (idx1, 0);
-    }
-    assert(idx1 != arr.length - 1);
-    // In order to find (k+1)th element,
-    // find minimum in right partition of array
-    idx2 = idx1 + 1;
-    for (uint i=idx1+2; i<arr.length; i++) {
-      if (arr[i] < arr[idx2]) {
-        idx2 = i;
-      }
-    }
-    return (idx1, idx2);
-  }
+        while (lo < hi) {
 
-  ///
-  ///
-  /// 
-  function quickSelectwithPivot
-  (
-    int256[] memory arr,
-    uint256 lo,
-    uint256 hi,
-    uint256 k,
-    bool selectKplusOne,
-    int256 pivot
-  )
-    private
-    pure
-    returns (uint256, uint256)
-  {
-    assert(lo <= k && k <= hi);
-    
-    if (lo == hi) {return (k, 0);}
-   
-    uint256 pivotIdx = partitionWithPivot(arr, lo, hi, pivot);
+            pivot = arr[lo];
 
-    uint256 idx1;
-    uint256 idx2;
+            i = lo + 1;
+            j = hi;
 
-    if (k == pivotIdx) {
-      idx1 = pivotIdx;
-    } else if (k < pivotIdx){
-      (idx1, idx2) = quickSelect(arr, lo, pivotIdx - 1, k, false);
-    } else {
-      (idx1, idx2) = quickSelect(arr, pivotIdx + 1, hi, k, false);
-    }
-    if (!selectKplusOne) {
-      return (idx1, 0);
-    }
-    assert(idx1 != arr.length - 1);
-    // In order to find (k+1)th element,
-    // find minimum in right partition of array
-    idx2 = idx1 + 1;
-    for (uint i=idx1+2; i<arr.length; i++) {
-      if (arr[i] < arr[idx2]) {
-        idx2 = i;
-      }
-    }
-    return (idx1, idx2);
+            // partition
+            while (true) {
+              while (i < arr.length && arr[i] < pivot) {
+                i++;
+              }
+              while (j > 0 && arr[j] > pivot) {
+                j--;
+              }
+              if (i >= j) {
+                // swap with pivot
+                (arr[lo], arr[j]) = (arr[j], arr[lo]);
+                idx = j;
+                break;
+              }
+              (arr[i], arr[j]) = (arr[j], arr[i]);
+              i++;
+              j--;
+            }
+
+            if (k == idx) {return (arr[idx], 0);}
+
+            if (k < idx){
+              hi = idx - 1;
+            } else {
+              lo = idx + 1;
+            }
+        }
+        return (arr[lo], 0);
   }
 
   
@@ -424,25 +238,27 @@ function medianWithPivot
     returns (uint256)
   {
     if (lo == hi) {return lo;}
-    
-    int pivot = arr[lo];
 
-    uint i = lo;
-    uint j = hi + 1;
- 
+    int pivot = arr[lo];
+    uint pivot_idx = lo;
+
+    lo++;
+
     while (true) {
-      do {
-        i++;
-      } while (i < arr.length && arr[i] < pivot);
-      do {
-        j--;
-      } while (arr[j] > pivot);
-      if (i >= j) {
+      while (lo < arr.length && arr[lo] <= pivot) {
+        lo++;
+      }
+      while (hi > 0 && arr[hi] >= pivot) {
+        hi--;
+      }
+      if (lo >= hi) {
         // swap with pivot
-        (arr[lo], arr[j]) = (arr[j], arr[lo]);
-        return j;
-      } 
-      (arr[i], arr[j]) = (arr[j], arr[i]);
+        (arr[pivot_idx], arr[hi]) = (arr[hi], arr[pivot_idx]);
+        return hi;
+      }
+      (arr[lo], arr[hi]) = (arr[hi], arr[lo]);
+      lo++;
+      hi--;
     }
   }
   
